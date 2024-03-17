@@ -217,6 +217,7 @@ export default class Module {
 	readonly dynamicDependencies = new Set<Module | ExternalModule>();
 	readonly dynamicImporters: string[] = [];
 	readonly dynamicImports: DynamicImport[] = [];
+	dynamicDependenciesIncludeAllExports = new Set<Module>();
 	excludeFromSourcemap: boolean;
 	execIndex = Infinity;
 	readonly implicitlyLoadedAfter = new Set<Module>();
@@ -1308,23 +1309,23 @@ export default class Module {
 	}
 
 	private includeDynamicImport(node: ImportExpression): void {
-		const resolution = (
-			this.dynamicImports.find(dynamicImport => dynamicImport.node === node) as {
-				resolution: string | Module | ExternalModule | undefined;
-			}
-		).resolution;
+		const resolution = this.dynamicImports.find(
+			dynamicImport => dynamicImport.node === node
+		)!.resolution;
 
 		if (resolution instanceof Module) {
-			resolution.includedDynamicImporters.push(this);
+			!resolution.includedDynamicImporters.includes(this) &&
+				resolution.includedDynamicImporters.push(this);
 
 			const importedNames = this.options.treeshake
 				? node.getDeterministicImportedNames()
 				: undefined;
 
 			if (importedNames) {
+				this.dynamicDependenciesIncludeAllExports.delete(resolution);
 				resolution.includeExportsByNames(importedNames);
 			} else {
-				resolution.includeAllExports(true);
+				this.dynamicDependenciesIncludeAllExports.add(resolution);
 			}
 		}
 	}

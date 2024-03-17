@@ -27,12 +27,9 @@ import {
 } from '../utils/PathTracker';
 import { UNDEFINED_EXPRESSION } from '../values';
 import ExternalVariable from '../variables/ExternalVariable';
-import LocalVariable from '../variables/LocalVariable';
 import type NamespaceVariable from '../variables/NamespaceVariable';
 import type Variable from '../variables/Variable';
-import AwaitExpression from './AwaitExpression';
 import Identifier from './Identifier';
-import type ImportExpression from './ImportExpression';
 import Literal from './Literal';
 import type * as NodeType from './NodeType';
 import type PrivateIdentifier from './PrivateIdentifier';
@@ -48,10 +45,6 @@ import {
 } from './shared/Expression';
 import type { ChainElement, ExpressionNode, IncludeChildren } from './shared/Node';
 import { NodeBase } from './shared/Node';
-
-function isImportExpression(node: ExpressionNode): node is ImportExpression {
-	return node.type === 'ImportExpression';
-}
 
 // To avoid infinite recursions
 const MAX_PATH_DEPTH = 7;
@@ -167,16 +160,6 @@ export default class MemberExpression
 			}
 		} else {
 			super.bind();
-		}
-		if (baseVariable instanceof LocalVariable) {
-			const init = baseVariable.init;
-			if (
-				init instanceof AwaitExpression &&
-				isImportExpression(init.argument) &&
-				typeof this.propertyKey === 'string'
-			) {
-				init.argument.addAccessedPropKey(this.propertyKey);
-			}
 		}
 	}
 
@@ -316,12 +299,12 @@ export default class MemberExpression
 	}
 
 	includePath(
-		path: ObjectPath,
+		_: ObjectPath,
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren
 	): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		this.includeProperties(path, context, includeChildrenRecursively);
+		this.includeProperties([this.propertyKey || UnknownKey], context, includeChildrenRecursively);
 	}
 
 	includeAsAssignmentTarget(
