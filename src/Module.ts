@@ -217,7 +217,7 @@ export default class Module {
 	readonly dynamicDependencies = new Set<Module | ExternalModule>();
 	readonly dynamicImporters: string[] = [];
 	readonly dynamicImports: DynamicImport[] = [];
-	dynamicDependenciesIncludeAllExports = new Set<Module>();
+	private dynamicDependenciesIncludeAllExports = new Set<Module>();
 	excludeFromSourcemap: boolean;
 	execIndex = Infinity;
 	readonly implicitlyLoadedAfter = new Set<Module>();
@@ -676,6 +676,12 @@ export default class Module {
 
 	hasEffects(): boolean {
 		return this.info.moduleSideEffects === 'no-treeshake' || this.ast!.hasCachedEffects();
+	}
+
+	includeDynamicDependenciesIncludeAllExports() {
+		for (const dynamicDependencies of this.dynamicDependenciesIncludeAllExports) {
+			dynamicDependencies.includeAllExports(true);
+		}
 	}
 
 	include(): void {

@@ -166,44 +166,35 @@ export default class Graph {
 		}
 		if (this.options.treeshake) {
 			let treeshakingPass = 1;
-			const loopTreeShaking = () => {
-				do {
-					timeStart(`treeshaking pass ${treeshakingPass}`, 3);
-					this.needsTreeshakingPass = false;
-					for (const module of this.modules) {
-						if (module.isExecuted) {
-							if (module.info.moduleSideEffects === 'no-treeshake') {
-								module.includeAllInBundle();
-							} else {
-								module.include();
-							}
+			do {
+				timeStart(`treeshaking pass ${treeshakingPass}`, 3);
+				this.needsTreeshakingPass = false;
+				for (const module of this.modules) {
+					if (module.isExecuted) {
+						if (module.info.moduleSideEffects === 'no-treeshake') {
+							module.includeAllInBundle();
+						} else {
+							module.include();
 						}
 					}
-					if (treeshakingPass === 1) {
-						// We only include exports after the first pass to avoid issues with
-						// the TDZ detection logic
-						for (const module of entryModules) {
-							if (module.preserveSignature !== false) {
-								module.includeAllExports(false);
-								this.needsTreeshakingPass = true;
-							}
-						}
-					}
-					timeEnd(`treeshaking pass ${treeshakingPass++}`, 3);
-				} while (this.needsTreeshakingPass);
-			};
-			loopTreeShaking();
-			for (const module of this.modules) {
-				for (const dynamicDependency of module.dynamicDependenciesIncludeAllExports) {
-					dynamicDependency.includeAllExports(true);
 				}
-			}
-			if (this.needsTreeshakingPass) {
-				loopTreeShaking();
-			}
-			if (this.needsTreeshakingPass) {
-				throw new Error('What What What!!!');
-			}
+				if (treeshakingPass === 1) {
+					// We only include exports after the first pass to avoid issues with
+					// the TDZ detection logic
+					for (const module of entryModules) {
+						if (module.preserveSignature !== false) {
+							module.includeAllExports(false);
+							this.needsTreeshakingPass = true;
+						}
+					}
+				}
+				timeEnd(`treeshaking pass ${treeshakingPass++}`, 3);
+				if (!this.needsTreeshakingPass) {
+					for (const module of this.modules) {
+						module.includeDynamicDependenciesIncludeAllExports();
+					}
+				}
+			} while (this.needsTreeshakingPass);
 		} else {
 			for (const module of this.modules) module.includeAllInBundle();
 		}
