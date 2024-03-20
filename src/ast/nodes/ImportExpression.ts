@@ -82,7 +82,7 @@ export default class ImportExpression extends NodeBase {
 				return EMPTY_ARRAY;
 			}
 
-			// Case 1: const { foo } = await import('bar')
+			// Case 1: const { foo } / module = await import('bar')
 			if (parent2 instanceof VariableDeclarator) {
 				const declaration = parent2.id;
 				if (declaration instanceof Identifier) {
@@ -92,7 +92,6 @@ export default class ImportExpression extends NodeBase {
 				if (declaration instanceof ObjectPattern) {
 					return getDeterministicObjectDestructure(declaration);
 				}
-				return undefined;
 			}
 
 			// Case 2: (await import('bar')).foo
