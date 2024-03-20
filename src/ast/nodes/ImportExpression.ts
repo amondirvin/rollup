@@ -155,10 +155,6 @@ export default class ImportExpression extends NodeBase {
 		}
 	}
 
-	addAccessedPropKey(key: string): void {
-		this.accessedPropKey.add(key);
-	}
-
 	hasEffects(): boolean {
 		return true;
 	}
