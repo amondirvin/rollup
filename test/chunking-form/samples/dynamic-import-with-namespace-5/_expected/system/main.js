@@ -5,7 +5,10 @@ System.register([], (function (exports, module) {
 
 			(async () => {
 				const module$1 = await module.import('./generated-module.js');
-				module$1.foo();
+				readBar(module$1);
+				function readBar(module1) {
+					module1.foo();
+				}
 			})();
 
 		})

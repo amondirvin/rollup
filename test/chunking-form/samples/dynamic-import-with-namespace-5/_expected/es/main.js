@@ -1,4 +1,7 @@
 (async () => {
 	const module = await import('./generated-module.js');
-	module.foo();
+	readBar(module);
+	function readBar(module1) {
+		module1.foo();
+	}
 })();
